@@ -16,5 +16,17 @@ CHIP PC {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    // reset
+    Mux16(a=regout, b[0..15]=false, sel=reset, out=reseted);
+    // inc
+    Inc16(in=regout, out=incremented);
+
+    Mux16(a=incremented, b=in, sel=load, out=reg0);
+    Mux16(a=reg0, b=reseted, sel=reset, out=reg1);
+
+    // register or load
+    Or(a=reset, b=inc, out=resetorinc);
+    Or(a=resetorinc, b=load, out=regorload);
+
+    Register(in=reg1, load=regorload, out=regout, out=out);
 }
