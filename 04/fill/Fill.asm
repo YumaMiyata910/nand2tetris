@@ -12,3 +12,39 @@
 // the screen should remain fully clear as long as no key is pressed.
 
 // Put your code here.
+
+(Check)
+	@24576
+	D=M
+	@Black
+	D;JNE
+	@White
+	0;JMP
+
+(Black)
+	@i
+	M=1
+	@j
+	M=1
+	(Line)
+		@i
+		D=M
+		@32
+		D=D-A
+		@Lineend
+		D;JGT
+		(Column)
+			@j
+			D=M
+			@16
+			D=D-A
+			@Columnend
+			D;JGT
+			
+	@Check
+	0;JMP
+	
+(White)
+
+	@Check
+	0;JMP
