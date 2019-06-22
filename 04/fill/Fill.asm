@@ -14,7 +14,7 @@
 // Put your code here.
 
 (Check)
-	@24576
+	@KBD
 	D=M
 	@Black
 	D;JNE
@@ -26,6 +26,11 @@
 	M=1
 	@j
 	M=1
+	@SCREEN
+	D=A
+	@addr
+	A=D
+
 	(Line)
 		@i
 		D=M
@@ -33,6 +38,7 @@
 		D=D-A
 		@Lineend
 		D;JGT
+
 		(Column)
 			@j
 			D=M
@@ -40,11 +46,47 @@
 			D=D-A
 			@Columnend
 			D;JGT
-			
+			@addr
+			M=1
+			A=A+1
+		(Columnend)
+
+	(Lineend)
+	
 	@Check
 	0;JMP
 	
 (White)
+	@i
+	M=1
+	@j
+	M=1
+	@SCREEN
+	D=A
+	@addr
+	A=D
+	
+	(Line)
+		@i
+		D=M
+		@32
+		D=D-A
+		@Lineend
+		D;JGT
+
+		(Column)
+			@j
+			D=M
+			@16
+			D=D-A
+			@Columnend
+			D;JGT
+			@addr
+			M=0
+			A=A+1
+		(Columnend)
+
+	(Lineend)
 
 	@Check
 	0;JMP
