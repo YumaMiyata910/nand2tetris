@@ -39,5 +39,67 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+    // ref: https://qiita.com/dgkz/items/437426b6b50f41e718c7
+    // instruction[15]=0 -> A命令
+    // instruction[15]=1 -> D命令
+
+    // ARegister
+    Not(in=instruction[15], out=isA);
+    Mux16(a=ALUOut, b=instruction, sel=isA, out=AregIn);
+    Or(a=isA, b=instruction[5], out=writeAreg);
+    ARegister(in=AregIn, load=writeAreg, out=Areg, out[0..14]=addressM);
+
+
+    // ALU
+    And(a=instruction[15], b=instruction[12], out=useInM);
+    Mux16(a=Areg, b=inM, sel=useInM, out=ALUin);
+    ALU(x=Dreg, y=ALUin, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=outM, out=ALUOut, zr=ALUOutZr, ng=ALUOutNg);
+
+
+    // DRegister
+    And(a=instruction[15], b=instruction[4], out=saveDreg);
+    DRegister(in=ALUOut, load=saveDreg, out=Dreg);
+
+
+    // writeM
+    And(a=instruction[15], b=instruction[3], out=writeM);
+
+
+    // jump jadge
+    // ALUOutZr -> out = 0
+    // ALUOutNg -> out < 0
+    // ALUOutPt -> out > 0
+    Not(in=ALUOutZr, out=ALUOutNotZr);
+    Not(in=ALUOutNg, out=ALUOutNotNg);
+    And(a=ALUOutNotZr, b=ALUOutNotNg, out=ALUOutPt);
+
+    // ifZr -> if out == 0
+    // ifNg -> if out < 0
+    // ifPt -> if out > 0
+    And(a=instruction[15], b=instruction[0], out=ifPt);
+    And(a=instruction[15], b=instruction[1], out=ifZr);
+    And(a=instruction[15], b=instruction[2], out=ifNg);
+    // ifNgEq -> if out <= 0
+    // ifPtEq -> if out >= 0
+    // ifNotEq -> if out != 0
+    And(a=ifNg, b=ifZr, out=ifNgEq);
+    And(a=ifPt, b=ifZr, out=ifPtEq);
+    And(a=ifPt, b=ifNg, out=ifNotEq);
+
+    And(a=ifNg, b=ALUOutNg, out=isJump0);
+    And(a=ifZr, b=ALUOutZr, out=isJump1);
+    And(a=ifPt, b=ALUOutPt, out=isJump2);
+    And(a=ifNgEq, b=ALUOutNg, out=isJump3);
+    And(a=ifNgEq, b=ALUOutZr, out=isJump4);
+    And(a=ifPtEq, b=ALUOutPt, out=isJump5);
+    And(a=ifPtEq, b=ALUOutZr, out=isJump6);
+    And(a=ifNotEq, b=ALUOutNotZr, out=isJump7);
+    // jmpAlways -> Always Jump
+    And(a=ifNotEq, b=ifZr, out=jmpAlways);
+    Or8Way(in[0]=isJump0, in[1]=isJump1, in[2]=isJump2, in[3]=isJump3, in[4]=isJump4, in[5]=isJump5, in[6]=isJump6, in[7]=isJump7, out=isJumpMatch);
+    Or(a=isJumpMatch, b=jmpAlways, out=isJump);
+
+
+    // PC
+    PC(in=Areg, load=isJump, inc=true, reset=reset, out[0..14]=pc);
 }
